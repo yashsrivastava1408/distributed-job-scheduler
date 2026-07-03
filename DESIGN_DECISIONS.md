@@ -98,7 +98,7 @@ Our database schema is highly structured and normalized to model organizations, 
 erDiagram
     User {
         string id PK
-        string email UNIQUE
+        string email
         string passwordHash
         string name
         string role
@@ -120,7 +120,7 @@ erDiagram
         string id PK
         string organizationId FK
         string name
-        string apiKey UNIQUE
+        string apiKey
         datetime createdAt
     }
     Queue {
@@ -156,7 +156,7 @@ erDiagram
         int attemptsCount
         datetime runAt
         string claimedByWorkerId FK
-        string idempotencyKey UNIQUE
+        string idempotencyKey
         datetime createdAt
     }
     ScheduledJob {

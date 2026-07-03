@@ -15,67 +15,6 @@ A highly reliable, production-grade distributed job scheduler built with **Node.
 
 ---
 
-## Getting Started
-
-### 1. Prerequisite Configuration
-
-Clone the repository and copy the environment template:
-```bash
-cp .env.example .env
-```
-Update `.env` with your PostgreSQL database URL (e.g. Supabase or local instance) and session secret values.
-
-### 2. Database Sync
-Apply migrations or sync database schemas directly to the target database:
-```bash
-npx prisma db push
-```
-
-### 3. Local Development
-
-#### Start the API Server:
-```bash
-npm run dev
-```
-Starts the API server on `http://localhost:3000`.
-
-#### Start the Worker Processes:
-```bash
-# Starts a worker polling all queues with 5 slots of concurrency
-npm run worker
-```
-
-#### Start the React Frontend Dashboard:
-```bash
-cd frontend
-npm run dev
-```
-Serves the dashboard on `http://localhost:5173`.
-
----
-
-## Running with Docker Compose
-
-To spin up the entire stack (API, PostgreSQL database, Workers cluster, and Nginx-served Frontend dashboard) with a single command:
-```bash
-docker-compose up --build
-```
-- API Server: `http://localhost:3000`
-- Frontend Dashboard: `http://localhost:80` (or the mapped Nginx port)
-- Workers replica counts can be scaled dynamically.
-
----
-
-## Running Tests
-
-Execute the test suite (includes unit tests for backoff delays, atomic claim tests under worker concurrency, and worker crash recovery integration tests):
-```bash
-# Runs the tests in sequence to prevent concurrent DB table conflicts
-npx vitest run --no-file-parallelism
-```
-
----
-
 ## Architecture & Database Design
 
 ### System Architecture Diagram
@@ -108,7 +47,7 @@ The comprehensive database schema layout for the 12 normalized tables:
 erDiagram
     User {
         string id PK
-        string email UNIQUE
+        string email
         string passwordHash
         string name
         string role
@@ -130,7 +69,7 @@ erDiagram
         string id PK
         string organizationId FK
         string name
-        string apiKey UNIQUE
+        string apiKey
         datetime createdAt
     }
     Queue {
@@ -166,7 +105,7 @@ erDiagram
         int attemptsCount
         datetime runAt
         string claimedByWorkerId FK
-        string idempotencyKey UNIQUE
+        string idempotencyKey
         datetime createdAt
     }
     ScheduledJob {
@@ -258,3 +197,63 @@ erDiagram
 
 For detailed explanations of major engineering trade-offs, index optimizations, normalization steps, and cascading behavior configurations, please refer to the complete **[DESIGN_DECISIONS.md](file:///Users/yashsrivastava32/.gemini/antigravity-ide/scratch/job-scheduler/DESIGN_DECISIONS.md)** file.
 
+---
+
+## Getting Started
+
+### 1. Prerequisite Configuration
+
+Clone the repository and copy the environment template:
+```bash
+cp .env.example .env
+```
+Update `.env` with your PostgreSQL database URL (e.g. Supabase or local instance) and session secret values.
+
+### 2. Database Sync
+Apply migrations or sync database schemas directly to the target database:
+```bash
+npx prisma db push
+```
+
+### 3. Local Development
+
+#### Start the API Server:
+```bash
+npm run dev
+```
+Starts the API server on `http://localhost:3000`.
+
+#### Start the Worker Processes:
+```bash
+# Starts a worker polling all queues with 5 slots of concurrency
+npm run worker
+```
+
+#### Start the React Frontend Dashboard:
+```bash
+cd frontend
+npm run dev
+```
+Serves the dashboard on `http://localhost:5173`.
+
+---
+
+## Running with Docker Compose
+
+To spin up the entire stack (API, PostgreSQL database, Workers cluster, and Nginx-served Frontend dashboard) with a single command:
+```bash
+docker-compose up --build
+```
+- API Server: `http://localhost:3000`
+- Frontend Dashboard: `http://localhost:80` (or the mapped Nginx port)
+- Workers replica counts can be scaled dynamically.
+
+---
+
+## Running Tests
+
+Execute the test suite (includes unit tests for backoff delays, atomic claim tests under worker concurrency, and worker crash recovery integration tests):
+```bash
+# Runs the tests in sequence to prevent concurrent DB table conflicts
+npx vitest run --no-file-parallelism
+```
