@@ -1,0 +1,364 @@
+openapi: 3.0.3
+info:
+  title: Distributed Job Scheduler API
+  description: API documentation for the multi-tenant distributed job scheduler with concurrency limit controls, atomic claiming, real-time Socket.IO synchronization, and DLQ support.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Base API endpoint
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, name, password]
+              properties:
+                email: { type: string, format: email }
+                name: { type: string }
+                password: { type: string, minLength: 8 }
+      responses:
+        201:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user: { type: object }
+                      accessToken: { type: string }
+                      refreshToken: { type: string }
+
+  /auth/login:
+    post:
+      summary: User authentication login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        200:
+          description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      accessToken: { type: string }
+                      refreshToken: { type: string }
+
+  /organizations:
+    get:
+      summary: List user's organizations
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of organizations
+    post:
+      summary: Create a new organization
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses:
+        201:
+          description: Organization created
+
+  /organizations/{orgId}/projects:
+    get:
+      summary: List projects in organization
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: List of projects
+    post:
+      summary: Create a new project inside organization (generates API key)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses:
+        201:
+          description: Project created successfully with API key
+
+  /queues/project/{projectId}:
+    get:
+      summary: List queues for a project
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: List of queues
+    post:
+      summary: Create a queue in project
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                priority: { type: integer, default: 0 }
+                maxConcurrency: { type: integer, default: 10 }
+                retryPolicy:
+                  type: object
+                  required: [strategy, baseDelayMs, maxDelayMs, maxAttempts]
+                  properties:
+                    strategy: { type: string, enum: [fixed, linear, exponential] }
+                    baseDelayMs: { type: integer }
+                    maxDelayMs: { type: integer }
+                    maxAttempts: { type: integer }
+                    jitter: { type: boolean, default: false }
+      responses:
+        201:
+          description: Queue created
+
+  /queues/{id}/pause:
+    post:
+      summary: Pause a queue
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: Queue paused
+
+  /queues/{id}/resume:
+    post:
+      summary: Resume a queue
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: Queue resumed
+
+  /queues/{id}/stats:
+    get:
+      summary: Get queue metrics/statistics
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: Queue statistics
+
+  /queues/{queueId}/jobs:
+    get:
+      summary: List/search jobs inside a queue
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: queueId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: type
+          in: query
+          schema: { type: string }
+      responses:
+        200:
+          description: Paginated jobs
+    post:
+      summary: Submit a job into a queue
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: queueId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type: { type: string }
+                payload: { type: object }
+                priority: { type: integer }
+                runAt: { type: string, format: date-time }
+                idempotencyKey: { type: string }
+                maxAttempts: { type: integer }
+      responses:
+        201:
+          description: Job submitted successfully
+
+  /jobs/{id}:
+    get:
+      summary: Get full job detail including executions and logs
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: Full job configuration and log trace timeline
+
+  /jobs/{id}/retry:
+    post:
+      summary: Manually retry/requeue a failed, cancelled, or dead job
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: Job requeued
+
+  /jobs/{id}/cancel:
+    post:
+      summary: Cancel a pending or active job execution
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: Job cancelled
+
+  /workers:
+    get:
+      summary: List connected workers
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of connected workers and status
+  /workers/{id}:
+    get:
+      summary: Get telemetry of a worker instance (includes heartbeat history)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Telemetry details
+
+  /dlq/{id}/requeue:
+    post:
+      summary: Requeue a failed job back from DLQ to queued state
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        200:
+          description: DLQ job requeued
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
