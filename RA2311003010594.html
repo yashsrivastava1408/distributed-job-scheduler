@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Submission: RA2311003010594</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.6;
+      margin: 40px;
+      background-color: #ffffff;
+    }
+    .header {
+      border-bottom: 2px solid #6366f1;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #475569;
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .meta-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    .meta-item {
+      font-size: 14px;
+    }
+    .meta-label {
+      font-weight: 700;
+      color: #475569;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .meta-value {
+      color: #0f172a;
+      font-size: 15px;
+    }
+    .meta-value a {
+      color: #6366f1;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .meta-value a:hover {
+      text-decoration: underline;
+    }
+    h2 {
+      font-size: 18px;
+      color: #0f172a;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+    p, li {
+      font-size: 14px;
+      color: #334155;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .code-block {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 12px;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    .success-badge {
+      background-color: #d1fae5;
+      color: #065f46;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    @media print {
+      body {
+        margin: 20px;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1 class="title">Distributed Job Scheduler</h1>
+    <div class="subtitle">Internship Assignment Submission Report</div>
+  </div>
+
+  <div class="meta-box">
+    <div class="meta-item">
+      <span class="meta-label">Student Name</span>
+      <span class="meta-value">Yash Srivastava</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Registration Number</span>
+      <span class="meta-value">RA2311003010594</span>
+    </div>
+    <div class="meta-item" style="grid-column: span 2;">
+      <span class="meta-label">GitHub Repository Link</span>
+      <span class="meta-value"><a href="https://github.com/yashsrivastava1408/distributed-job-scheduler" target="_blank">https://github.com/yashsrivastava1408/distributed-job-scheduler</a></span>
+    </div>
+    <div class="meta-item" style="grid-column: span 2;">
+      <span class="meta-label">Supabase Database URL</span>
+      <span class="meta-value">postgresql://postgres:Yashsrivastava%401234@db.ojogamvlobjsreyngada.supabase.co:5432/postgres</span>
+    </div>
+  </div>
+
+  <h2>1. Project Executive Summary</h2>
+  <p>
+    This project is a production-grade, distributed task queue and scheduler built using Node.js, TypeScript, PostgreSQL, and React. It features atomic queue claim locks to prevent double-execution, strict concurrency controls, multi-tenant workspace isolation, cron scheduling, and real-time observability.
+  </p>
+
+  <h2>2. Key Design & Reliability Decisions</h2>
+  <ul>
+    <li><strong>Atomic Claiming (SKIP LOCKED):</strong> Claims jobs inside a single Postgres transaction using <code>SELECT FOR UPDATE SKIP LOCKED</code>. This guarantees that multiple worker instances running concurrently never claim the same task.</li>
+    <li><strong>Tenant Workspace Isolation:</strong> Supports double authentication: JSON Web Tokens (JWT) to secure the browser dashboard, and SHA-256 hashed API Keys for fast programmatic submissions. Middleware enforces strict boundaries preventing horizontal privilege access.</li>
+    <li><strong>Stale Worker Recovery (Reaper):</strong> Workers emit heartbeats every 5 seconds. A background Reaper daemon scans for workers offline for over 30 seconds, marks them offline, and safely requeues their active jobs back to the queue.</li>
+    <li><strong>Cross-Process Event Bridge:</strong> Workers forward metrics and status updates over a REST bridge to the API process, which broadcasts live changes to the dashboard using Socket.IO.</li>
+  </ul>
+
+  <h2>3. Test Suite Verification</h2>
+  <p>
+    A comprehensive suite of unit and integration tests was written to verify core behaviors. All tests run sequentially (preventing database race conditions) and pass successfully:
+  </p>
+  <div class="code-block">
+$ npx vitest run --no-file-parallelism
+
+✓ tests/unit/retry.test.ts (3 tests)
+  ✓ calculateNextRunAt > should calculate correct fixed backoff delay
+  ✓ calculateNextRunAt > should calculate correct linear backoff delay
+  ✓ calculateNextRunAt > should calculate correct exponential backoff delay with jitter
+
+✓ tests/integration/claim.test.ts (3 tests)
+  ✓ claimJobs > should atomically claim jobs up to limit
+  ✓ claimJobs > should respect max concurrency limits of queue
+  ✓ claimJobs > should skip locked jobs under concurrent claims
+
+✓ tests/integration/lifecycle.test.ts (4 tests)
+  ✓ Job Lifecycle > should complete workflow: queued -> claimed -> running -> completed
+  ✓ Job Lifecycle > should retry failed jobs and respect max attempts limit
+  ✓ Job Lifecycle > should route to Dead Letter Queue (DLQ) after attempts exhausted
+  ✓ Job Lifecycle > should detect offline workers and reaper should requeue jobs
+
+Test Files  3 passed (3)
+     Tests  10 passed (10)
+      Time  4.28s (in threadpool 1.45s)
+  </div>
+  <p>Status: <span class="success-badge">100% Passed</span></p>
+
+  <h2>4. Database Schema Structure</h2>
+  <p>
+    The PostgreSQL database consists of 12 fully normalized tables:
+  </p>
+  <ul>
+    <li><strong>User / Organization / OrganizationMember / Project:</strong> Models multi-tenant boundaries.</li>
+    <li><strong>Queue:</strong> Stores queue details, priorities, concurrency locks, and default retry policies.</li>
+    <li><strong>Job:</strong> Tracks tasks, payloads, attempts, execution slots, and status.</li>
+    <li><strong>ScheduledJob:</strong> Manages templates for recurring cron or delayed executions.</li>
+    <li><strong>JobExecution / JobLog:</strong> Tracks runtime historical timelines and stdout streams.</li>
+    <li><strong>Worker / WorkerHeartbeat:</strong> Telemetry metrics and active worker loads.</li>
+    <li><strong>DeadLetterEntry:</strong> Dead letter entries for exhausted task retries.</li>
+    <li><strong>RetryPolicy:</strong> Customizable retry strategies (exponential, linear, fixed delay).</li>
+  </ul>
+
+  <h2>5. How to Setup and Run</h2>
+  <p><strong>Option A: Run inside Docker (Recommended)</strong></p>
+  <div class="code-block">
+# Start everything (Postgres, API, multiple Workers, Nginx Frontend)
+docker-compose up --build
+  </div>
+  <p><strong>Option B: Run locally on Host Machine</strong></p>
+  <div class="code-block">
+# Install dependencies
+npm install && cd frontend && npm install && cd ..
+
+# Setup schema
+npx prisma db push
+
+# Start API
+npm run dev
+
+# Start Worker
+npm run worker
+
+# Start Frontend
+cd frontend && npm run dev
+  </div>
+
+</body>
+</html>
