@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: job_scheduler
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: .
@@ -9,11 +25,8 @@ services:
       - "3000:3000"
     command: sh -c "npx prisma db push --accept-data-loss && npx tsx src/api/index.ts"
     restart: always
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/job_scheduler
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       PORT: "3000"
@@ -22,17 +35,17 @@ services:
       SCHEDULER_POLL_INTERVAL_MS: "5000"
       REAPER_POLL_INTERVAL_MS: "15000"
       REAPER_STALE_THRESHOLD_MS: "30000"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
     restart: always
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/job_scheduler
       API_INTERNAL_URL: http://api:3000
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       WORKER_CONCURRENCY: "5"
@@ -40,7 +53,8 @@ services:
       WORKER_QUEUES: default
       NODE_ENV: production
     depends_on:
-      - api
+      postgres:
+        condition: service_healthy
     deploy:
       replicas: 2
 
@@ -53,3 +67,6 @@ services:
     restart: always
     depends_on:
       - api
+
+volumes:
+  pgdata:
