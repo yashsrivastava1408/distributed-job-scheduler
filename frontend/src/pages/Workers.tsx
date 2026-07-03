@@ -42,12 +42,12 @@ export const Workers: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'online':
-        return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 status-pill-online';
       case 'draining':
         return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
       case 'offline':
       default:
-        return 'bg-slate-500/15 text-slate-400 border border-slate-700/30';
+        return 'bg-slate-500/15 text-slate-400 border border-slate-700/30 status-pill-offline';
     }
   };
 
@@ -85,7 +85,7 @@ export const Workers: React.FC = () => {
                 <div
                   key={worker.id}
                   onClick={() => setSelectedWorkerId(worker.id)}
-                  className={`p-5 bg-slate-900/35 border rounded-xl shadow-md transition-all cursor-pointer hover:scale-[1.005] ${
+                  className={`p-5 glass-panel border rounded-xl shadow-md transition-all cursor-pointer hover:scale-[1.005] ${
                     isActive ? 'border-violet-500/60 bg-slate-900/60 shadow-violet-950/20' : 'border-slate-800/50 hover:border-slate-800'
                   }`}
                 >

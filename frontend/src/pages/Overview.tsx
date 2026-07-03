@@ -105,7 +105,7 @@ export const Overview: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-gradient-to-tr from-slate-900/60 to-slate-950/40 backdrop-blur-md border border-slate-800/80 rounded-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass-panel border border-slate-800/80 rounded-2xl">
         <div>
           <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">
             Project Dashboard
@@ -131,12 +131,12 @@ export const Overview: React.FC = () => {
           return (
             <div
               key={i}
-              className="bg-slate-900/35 backdrop-blur-sm border border-slate-800/50 rounded-xl p-5 hover:scale-[1.01] hover:border-slate-850 hover:bg-slate-900/50 transition-all flex flex-col justify-between shadow-md"
+              className="glass-panel border border-slate-800/50 rounded-xl p-5 hover:scale-[1.01] hover:border-slate-850 transition-all flex flex-col justify-between shadow-md"
             >
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs text-slate-400 font-medium block">{stat.label}</span>
-                  <span className="text-2xl font-bold text-slate-100 mt-2 block">{stat.value}</span>
+                  <span className="text-2xl font-bold text-slate-100 mt-2 block text-slate-200">{stat.value}</span>
                 </div>
                 <div className={`p-2 rounded-lg border ${stat.color}`}>
                   <Icon className="w-5 h-5" />
@@ -151,7 +151,7 @@ export const Overview: React.FC = () => {
       {/* Chart and distribution info */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart */}
-        <div className="lg:col-span-2 bg-slate-900/30 border border-slate-800/40 rounded-xl p-6 flex flex-col shadow-lg">
+        <div className="lg:col-span-2 glass-panel border border-slate-800/40 rounded-xl p-6 flex flex-col shadow-lg">
           <h4 className="text-sm font-bold text-slate-300 mb-6 flex items-center gap-2">
             <Activity className="w-4 h-4 text-violet-400" /> Job Execution Distribution
           </h4>
@@ -183,7 +183,7 @@ export const Overview: React.FC = () => {
         </div>
 
         {/* Status percentages / break down */}
-        <div className="bg-slate-900/30 border border-slate-800/40 rounded-xl p-6 flex flex-col justify-between shadow-lg">
+        <div className="glass-panel border border-slate-800/40 rounded-xl p-6 flex flex-col justify-between shadow-lg">
           <div>
             <h4 className="text-sm font-bold text-slate-300 mb-6">Execution Breakdown</h4>
             <div className="space-y-4">
@@ -218,7 +218,7 @@ export const Overview: React.FC = () => {
       </div>
 
       {/* Queue health quick check */}
-      <div className="bg-slate-900/30 border border-slate-800/40 rounded-xl p-6 shadow-lg">
+      <div className="glass-panel border border-slate-800/40 rounded-xl p-6 shadow-lg">
         <div className="flex justify-between items-center mb-6">
           <h4 className="text-sm font-bold text-slate-300">Queues Summary</h4>
           <Link to="/queues" className="text-xs text-violet-400 hover:text-violet-300 font-semibold hover:underline">
