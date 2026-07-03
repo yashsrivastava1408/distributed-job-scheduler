@@ -19,12 +19,27 @@
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .glass-panel:hover {
   background: rgba(15, 23, 42, 0.45) !important;
   border: 1px solid rgba(139, 92, 246, 0.15) !important;
   box-shadow: 0 0 25px -5px rgba(139, 92, 246, 0.06) !important;
+}
+
+/* Page Mount Entry Animation */
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Spinning/Loader Enhancements */
+.spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+.bounce-gentle {
+  animation: bounceGentle 2s ease-in-out infinite;
 }
 
 /* Glowing text effects */
@@ -66,6 +81,11 @@
   box-shadow: 0 0 8px rgba(244, 63, 94, 0.15);
 }
 
+.status-pill-active {
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.25);
+  animation: pulse-violet 2s infinite;
+}
+
 @keyframes pulse-green {
   0% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
@@ -75,5 +95,37 @@
   }
   100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes pulse-violet {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(139, 92, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
   }
 }

@@ -251,13 +251,13 @@ export const Layout: React.FC = () => {
             {activeOrg ? activeOrg.name : 'No Org'} / <span className="text-slate-200">{activeProject ? activeProject.name : 'No Project'}</span>
           </h2>
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 status-pill-online">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> WebSocket Sync
             </span>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-8 animate-fade-in-up">
           <Outlet />
         </div>
       </main>
