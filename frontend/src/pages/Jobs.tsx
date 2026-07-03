@@ -255,7 +255,7 @@ export const Jobs: React.FC = () => {
               <input
                 type="text"
                 value={jobIdempotencyKey}
-                onChange={(e) => setIdempotencyKey(e.target.value)}
+                onChange={(e) => setJobIdempotencyKey(e.target.value)}
                 placeholder="e.g. order-12345"
                 className="w-full px-3 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-violet-500"
               />
