@@ -102,26 +102,158 @@ flowchart TD
 ```
 
 ### Entity Relationship (ER) Diagram
-The database schema relationships for the 11 normalized tables:
+The comprehensive database schema layout for the 12 normalized tables:
 
 ```mermaid
 erDiagram
-    User ||--o{ OrganizationMember : belongs_to
-    Organization ||--o{ OrganizationMember : has_members
-    Organization ||--o{ Project : owns
-    Project ||--o{ Queue : owns_queues
-    Queue ||--o{ Job : holds
-    Queue ||--o{ ScheduledJob : defines_schedules
-    Queue ||--o{ JobBatch : groups_batches
-    Queue ||--o{ DeadLetterEntry : moves_to_dlq
-    RetryPolicy ||--o{ Queue : configures_default
-    RetryPolicy ||--o{ Job : configures_override
-    Worker ||--o{ Job : claims
-    Worker ||--o{ JobExecution : executes
-    Worker ||--o{ WorkerHeartbeat : logs_telemetry
-    Job ||--o{ JobExecution : tracks_attempts
-    Job ||--o| DeadLetterEntry : is_dlqd
-    JobExecution ||--o{ JobLog : records_stdout
+    User {
+        string id PK
+        string email UNIQUE
+        string passwordHash
+        string name
+        string role
+        datetime createdAt
+    }
+    Organization {
+        string id PK
+        string name
+        datetime createdAt
+    }
+    OrganizationMember {
+        string id PK
+        string organizationId FK
+        string userId FK
+        string role
+        datetime createdAt
+    }
+    Project {
+        string id PK
+        string organizationId FK
+        string name
+        string apiKey UNIQUE
+        datetime createdAt
+    }
+    Queue {
+        string id PK
+        string projectId FK
+        string name
+        int priority
+        int maxConcurrency
+        boolean isPaused
+        string retryPolicyId FK
+        datetime createdAt
+    }
+    RetryPolicy {
+        string id PK
+        string projectId FK
+        string name
+        string strategy
+        int maxAttempts
+        int baseDelayMs
+        int maxDelayMs
+        boolean jitter
+        datetime createdAt
+    }
+    Job {
+        string id PK
+        string queueId FK
+        string batchId FK
+        string type
+        json payload
+        string status
+        int priority
+        int maxAttempts
+        int attemptsCount
+        datetime runAt
+        string claimedByWorkerId FK
+        string idempotencyKey UNIQUE
+        datetime createdAt
+    }
+    ScheduledJob {
+        string id PK
+        string queueId FK
+        string type
+        json payload
+        string scheduleType
+        string cronExpression
+        datetime runAt
+        datetime nextRunAt
+        boolean isActive
+        int maxAttempts
+        datetime createdAt
+    }
+    JobBatch {
+        string id PK
+        string queueId FK
+        string label
+        int totalJobs
+        int completedJobs
+        int failedJobs
+        datetime createdAt
+    }
+    JobExecution {
+        string id PK
+        string jobId FK
+        string workerId FK
+        int attemptNumber
+        string status
+        datetime startedAt
+        datetime finishedAt
+        int durationMs
+        string errorMessage
+    }
+    JobLog {
+        string id PK
+        string jobExecutionId FK
+        datetime timestamp
+        string level
+        string message
+    }
+    Worker {
+        string id PK
+        string hostname
+        int pid
+        string status
+        string_array queues
+        int concurrency
+        datetime startedAt
+        datetime lastHeartbeatAt
+    }
+    WorkerHeartbeat {
+        string id PK
+        string workerId FK
+        datetime timestamp
+        int activeJobCount
+        float cpuPct
+        float memMb
+    }
+    DeadLetterEntry {
+        string id PK
+        string jobId FK
+        string queueId FK
+        json payload
+        string finalError
+        int totalAttempts
+        datetime movedAt
+    }
+
+    User ||--o{ OrganizationMember : "has memberships"
+    Organization ||--o{ OrganizationMember : "contains members"
+    Organization ||--o{ Project : "owns projects"
+    Project ||--o{ Queue : "owns queues"
+    Project ||--o{ RetryPolicy : "defines retry policies"
+    Queue ||--o{ Job : "holds jobs"
+    Queue ||--o{ ScheduledJob : "defines schedules"
+    Queue ||--o{ JobBatch : "manages batches"
+    Queue ||--o{ DeadLetterEntry : "sends to DLQ"
+    RetryPolicy ||--o{ Queue : "configures default policy"
+    RetryPolicy ||--o{ Job : "configures override policy"
+    Worker ||--o{ Job : "claims jobs"
+    Worker ||--o{ JobExecution : "runs executions"
+    Worker ||--o{ WorkerHeartbeat : "reports heartbeats"
+    Job ||--o{ JobExecution : "history of executions"
+    Job ||--o| DeadLetterEntry : "is routed to DLQ"
+    JobExecution ||--o{ JobLog : "writes logs"
 ```
 
 For detailed explanations of major engineering trade-offs, index optimizations, normalization steps, and cascading behavior configurations, please refer to the complete **[DESIGN_DECISIONS.md](file:///Users/yashsrivastava32/.gemini/antigravity-ide/scratch/job-scheduler/DESIGN_DECISIONS.md)** file.
