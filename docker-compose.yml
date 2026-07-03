@@ -24,6 +24,7 @@ services:
     ports:
       - "3000:3000"
     command: sh -c "npx prisma db push --accept-data-loss && npx tsx src/api/index.ts"
+    restart: always
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/job_scheduler
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
@@ -42,6 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+    restart: always
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/job_scheduler
       API_INTERNAL_URL: http://api:3000
